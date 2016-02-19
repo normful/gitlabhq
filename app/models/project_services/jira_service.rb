@@ -108,7 +108,9 @@ class JiraService < IssueTrackerService
       },
       entity: {
         name: noteable_name.humanize.downcase,
-        url: entity_url
+        url: entity_url,
+        title: noteable.title,
+        description: noteable.description
       }
     }
 
@@ -196,10 +198,13 @@ class JiraService < IssueTrackerService
     user_url = data[:user][:url]
     entity_name = data[:entity][:name]
     entity_url = data[:entity][:url]
+    entity_title = data[:entity][:title]
+    entity_description = data[:entity][:description]
+
     project_name = data[:project][:name]
 
     message = {
-      body: "[#{user_name}|#{user_url}] mentioned this issue in [a #{entity_name} of #{project_name}|#{entity_url}]."
+      body: "[#{user_name}|#{user_url}] mentioned this issue in [a #{entity_name} of #{project_name}|#{entity_url}].\n\n*#{entity_title}*\n\n#{entity_description}"
     }
 
     unless existing_comment?(issue_name, message[:body])
