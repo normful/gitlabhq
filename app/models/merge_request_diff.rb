@@ -19,7 +19,7 @@ class MergeRequestDiff < ActiveRecord::Base
   # Prevent store of diff if commits amount more then 500
   COMMITS_SAFE_SIZE = 500
 
-  attr_reader :commits, :diffs, :diffs_no_whitespace
+  attr_reader :commits, :diffs, :diffs_no_whitespace, :diffs_not_blacklisted
 
   belongs_to :merge_request
 
@@ -56,6 +56,27 @@ class MergeRequestDiff < ActiveRecord::Base
       ), { ignore_whitespace_change: true }
     )
     @diffs_no_whitespace ||= load_diffs(dump_commits(compare_result.diffs))
+  end
+
+  def blacklisted_substrings
+    [
+      '.min.css',
+      '.map',
+    ]
+  end
+
+  def diffs_not_blacklisted
+    @diffs ||= (load_diffs(st_diffs) || [])
+    result = []
+    @diffs.each do |diff|
+      if self.blacklisted_substrings.any? { |substring| diff.old_path.include?(substring) }
+        Rails.logger.info("merge_request_diff blacklisted file=#{diff.old_path}")
+      else
+        Rails.logger.info("merge_request_diff non-blacklisted file=#{diff.old_path}")
+        result.push(diff)
+      end
+    end
+    result
   end
 
   def commits

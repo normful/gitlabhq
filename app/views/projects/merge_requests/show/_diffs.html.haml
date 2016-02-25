@@ -1,6 +1,13 @@
 - if @merge_request_diff.collected?
-  = render "projects/diffs/diffs", diffs: params[:w] == '1' ? @merge_request.diffs_no_whitespace : @merge_request.diffs,
-    project: @merge_request.project, diff_refs: @merge_request.diff_refs
+  - if params[:w] == '1'
+    = render "projects/diffs/diffs", diffs: @merge_request.diffs_no_whitespace,
+      project: @merge_request.project, diff_refs: @merge_request.diff_refs
+  - elsif params[:clean] == '1'
+    = render "projects/diffs/diffs", diffs: @merge_request.diffs_not_blacklisted,
+      project: @merge_request.project, diff_refs: @merge_request.diff_refs
+  - else 
+    = render "projects/diffs/diffs", diffs: @merge_request.diffs,
+      project: @merge_request.project, diff_refs: @merge_request.diff_refs
 - elsif @merge_request_diff.empty?
   .nothing-here-block Nothing to merge from #{@merge_request.source_branch} into #{@merge_request.target_branch}
 - else
